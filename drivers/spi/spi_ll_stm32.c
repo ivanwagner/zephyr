@@ -1426,6 +1426,7 @@ static int spi_stm32_pm_action(const struct device *dev,
 {
 	const struct spi_stm32_config *config = dev->config;
 	const struct device *const clk = DEVICE_DT_GET(STM32_CLOCK_CONTROL_NODE);
+	struct spi_stm32_data *data = dev->data;
 	int err;
 
 	switch (action) {
@@ -1441,6 +1442,15 @@ static int spi_stm32_pm_action(const struct device *dev,
 			LOG_ERR("Could not enable SPI clock");
 			return err;
 		}
+
+		err = spi_context_cs_configure_all(&data->ctx);
+
+		if (err < 0) {
+			LOG_ERR("Could not enable CS line");
+			return err;
+		}
+
+		spi_context_unlock_unconditionally(&data->ctx);
 		break;
 	case PM_DEVICE_ACTION_SUSPEND:
 		/* Stop device clock. */
